@@ -1,4 +1,4 @@
-import prisma from './../utils/prisma.js'
+import prisma from '../lib/prisma.js'
 export async function insertUser(name, email, password) {
     try {
         let user = await prisma.user.create({

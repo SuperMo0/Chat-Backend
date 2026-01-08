@@ -1,5 +1,5 @@
 import { sign, verify } from "../utils/jwt.js";
-import { validateNewUser } from "../utils/validate.js";
+import { validateNewUser } from "../middlewares/validate.js";
 import * as model from "./../models/auth.js"
 import { compare, hash } from "../utils/bcrypt.js";
 
