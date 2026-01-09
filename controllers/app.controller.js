@@ -1,4 +1,6 @@
+import { getReceivers } from '../utils/utils.js';
 import * as model from './../models/app.model.js'
+import { io } from '../lib/socket.js';
 export async function getUserFriends(req, res) {
     try {
         let friends = await model.getUserFriends(req.userId);
@@ -78,13 +80,14 @@ export async function createFriendReqesut(req, res) {
 }
 
 export async function acceptFriendRequest(req, res) {
-    // make sure that the current user is the reciever of the request 
+
     try {
-        const userId = req.userId;
+        const userId = req.userId; // make sure that the current user is the reciever of the request 
         const { requestId } = req.params;
         const [sender, receiver] = await model.acceptFriendRequest(requestId)
-        res.json({ friend: sender });
-        // check if the sender is online and update his friends data 
+        res.json({ message: 'success' });
+        io.to(sender.id).emit("updateFriends", receiver);
+        io.to(receiver).emit("updateFriends", sender);
     } catch (error) {
         console.log(error);
     }
@@ -95,16 +98,21 @@ export async function createNewMessage(req, res) {
         const userId = req.userId;
         const { chatId } = req.params;
         const { content } = req.body
-        console.log(userId, chatId, content);
 
         const message = await model.createNewMessage(chatId, userId, content);
-        res.json({ message });
-        // check if the reciever is online and send him the message 
+
+        const chat = await model.updateChatLastMessage(chatId, message)
+
+        res.status(201).json({ message: 'ok' });
+
+        chat.users.forEach(user => {
+            io.to(user.id).emit("chatUpdate", chat);
+        });
+
     } catch (error) {
         console.log(error);
     }
 }
-
 
 export async function getAllUsers(req, res) {
     try {

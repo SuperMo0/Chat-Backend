@@ -8,11 +8,4 @@ export default async function protect(req, res, next) {
     } catch (error) {
         return res.status(401).json({ message: "Unauthorized" })
     }
-
-
-
-
-
-
-
 }

@@ -1,5 +1,13 @@
 import prisma from '../lib/prisma.js'
 
+
+
+
+const userProfileSelect = {
+    name: true,
+    avatar: true,
+    id: true,
+}
 export async function getUserFriends(userId) {
     try {
         let result = await prisma.user.findUnique({
@@ -7,7 +15,7 @@ export async function getUserFriends(userId) {
                 id: userId
             },
             select: {
-                friendsTo: { select: { id: true, avatar: true, name: true } },
+                friendsTo: { select: userProfileSelect },
             }
         })
         return result.friendsTo
@@ -27,11 +35,7 @@ export async function getUserChats(userId) {
                         lastMessage: true,
                         name: true,
                         users: {
-                            select: {
-                                id: true,
-                                avatar: true,
-                                name: true
-                            }
+                            select: userProfileSelect
                         }
                     }
                 },
@@ -120,29 +124,33 @@ export async function acceptFriendRequest(requestId) {
 
         const { senderId, receiverId } = result;
 
-        const [_, sender, receiver] = prisma.$transaction([
+        const [_, sender, receiver, chat] = prisma.$transaction([
             prisma.request.delete({
                 where: { id: requestId }
             }),
             prisma.user.update({
                 data: { friendsTo: { connect: { id: receiverId } } },
                 where: { id: senderId },
-                select: {
-                    id: true,
-                    avatar: true,
-                    name: true,
-                }
+                select: userProfileSelect
             }),
             prisma.user.update({
                 data: { friendsTo: { connect: { id: senderId } } },
                 where: { id: receiverId },
-                select: {
-                    id: true,
-                    avatar: true,
-                    name: true,
-                }
-            })
+                select: userProfileSelect
+            }),
+            prisma.chat.create({})
         ])
+
+        prisma.chat.update({
+            data: {
+                users: {
+                    connect: [{ id: senderId }, { id: receiverId }]
+                }
+            },
+            where: {
+                id: chat.id,
+            }
+        })
 
         return [sender, receiver]
 
@@ -179,7 +187,34 @@ export async function getAllUsers(userId) {
         return result
 
     } catch (error) {
-        throw error
+        throw 'error getting All users'
+    }
+
+
+
+}
+
+export async function updateChatLastMessage(chatId, lastMessage) {
+
+    try {
+        const result = await prisma.chat.update({
+            where: { id: chatId },
+            data: {
+                lastMessageId: lastMessage.id
+            },
+            select: {
+                users: {
+                    select: userProfileSelect
+                },
+                lastMessage: true,
+                name: true,
+                id: true,
+            }
+        })
+        return result
+
+    } catch (error) {
+        throw 'error updating chat lastMessage'
     }
 
 
