@@ -65,3 +65,12 @@ export async function check(req, res) {
         return res.status(401).json({ message: "Unauthorized" })
     }
 }
+
+export async function logout(req, res) {
+    try {
+        res.clearCookie("jwt");
+        return res.json({ message: 'ok' });
+    } catch (error) {
+        return res.status(401).json({ message: "error please try again" });
+    }
+}

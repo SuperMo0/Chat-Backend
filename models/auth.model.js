@@ -7,6 +7,17 @@ export async function insertUser(name, email, password) {
                 name: name,
                 email: email,
                 password: password,
+                chats: {
+                    connectOrCreate: {
+                        create: {
+                            id: "1",
+                            name: 'global'
+                        },
+                        where: {
+                            id: "1"
+                        }
+                    }
+                }
             },
             select: {
                 id: true,
@@ -18,6 +29,8 @@ export async function insertUser(name, email, password) {
         return user
 
     } catch (error) {
+        console.log(error);
+
         throw (error)
     }
 }

@@ -52,13 +52,15 @@ export async function getChatMessages(chatId) {
     try {
         let result = await prisma.message.findMany({
             where: { chatId: chatId },
-            orderBy: { timestamp: 'asc' }
+            orderBy: { timestamp: 'asc' },
+            include: { sender: { select: userProfileSelect } }
 
         })
-        // console.log(result);
         return result;
 
     } catch (error) {
+        console.log(error);
+
         throw "error while getting chat messages"
     }
 
@@ -94,7 +96,7 @@ export async function markMessageAsRead(messageId) {
                 readAt: new Date()
             },
             where: { id: messageId },
-            include: { chat: true }
+            include: { chat: true, sender: { select: userProfileSelect } }
         })
         return result;
     } catch (error) {
@@ -125,7 +127,8 @@ export async function markChatAsRead(chatId, userId) {
                 id: chatId
             },
             include: {
-                users: true
+                users: true,
+                lastMessage: true,
             }
 
         })
@@ -171,7 +174,7 @@ export async function acceptFriendRequest(requestId) {
 
         const { senderId, receiverId } = request;
 
-        const [_, sender, receiver, chat] = await prisma.$transaction([
+        let [_, sender, receiver, chat] = await prisma.$transaction([
             prisma.request.delete({
                 where: { id: requestId }
             }),
@@ -190,7 +193,7 @@ export async function acceptFriendRequest(requestId) {
             })
         ])
 
-        await prisma.chat.update({
+        chat = await prisma.chat.update({
             data: {
                 users: {
                     connect: [{ id: senderId }, { id: receiverId }]
@@ -199,6 +202,7 @@ export async function acceptFriendRequest(requestId) {
             where: {
                 id: chat.id,
             }
+            , include: { users: { select: userProfileSelect } }
         })
 
         return [sender, receiver, chat]
@@ -215,7 +219,8 @@ export async function createNewMessage(chatId, senderId, content) {
             data: {
                 senderId: senderId,
                 chatId: chatId,
-                content: content
+                content: content,
+                isRead: chatId == "1",
             },
         })
         return result;
@@ -256,7 +261,7 @@ export async function updateChatLastMessage(chatId, lastMessage) {
                 users: {
                     select: userProfileSelect
                 },
-                lastMessage: true,
+                lastMessage: { include: { sender: { select: userProfileSelect } } },
                 name: true,
                 id: true,
             }
@@ -264,6 +269,8 @@ export async function updateChatLastMessage(chatId, lastMessage) {
         return result
 
     } catch (error) {
+        console.log(error);
+
         throw 'error updating chat lastMessage'
     }
 

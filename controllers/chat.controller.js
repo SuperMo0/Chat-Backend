@@ -1,4 +1,4 @@
-import { getReceiver } from '../utils/utils.js';
+import { getReceivers } from '../utils/utils.js';
 import * as model from '../models/chat.model.js'
 import { io } from '../lib/socket.js';
 export async function getUserFriends(req, res) {
@@ -62,9 +62,12 @@ export async function markChatAsRead(req, res) {
 
         res.json({ message: 'ok' });
 
-        const receiver = getReceiver(userId, chat);
+        const receivers = getReceivers(userId, chat);
 
-        io.to(receiver.id).emit("chatIsRead", chat);
+        receivers.forEach((receiver) => {
+            io.to(receiver.id).emit("chatIsRead", chat);
+        })
+
 
     } catch (error) {
         console.log(error);
@@ -101,11 +104,11 @@ export async function acceptFriendRequest(req, res) {
 
         io.to(sender.id).emit("friendsUpdate", receiver);
 
-        io.to(receiver).emit("friendsUpdate", sender);
+        io.to(receiver.id).emit("friendsUpdate", sender);
 
-        io.to(sender.id).emit("chatsUpdate", chat);
+        io.to(sender.id).emit("chatUpdate", chat);
 
-        io.to(receiver).emit("friendsUpdate", chat);
+        io.to(receiver.id).emit("chatUpdate", chat);
 
     } catch (error) {
         console.log(error);

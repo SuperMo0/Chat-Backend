@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken'
 
-
+let SECRET = process.env.SECRET
 export async function sign(user, res) {
 
     return await new Promise((resolve, reject) => {
-        jwt.sign({ id: user.id }, "secret", { expiresIn: "2 days" }, (error, token) => {
+        jwt.sign({ id: user.id }, SECRET, { expiresIn: "2 days" }, (error, token) => {
             if (error) return reject(error);
 
             res.cookie("jwt", token, { maxAge: 2 * 24 * 60 * 60 * 1000, httpOnly: true })
@@ -15,7 +15,7 @@ export async function sign(user, res) {
 
 export async function verify(token) {
     return await new Promise((res, rej) => {
-        jwt.verify(token, "secret", (error, token) => {
+        jwt.verify(token, SECRET, (error, token) => {
             if (error) return rej(error);
             res(token.id);
         })

@@ -1,21 +1,20 @@
 import "dotenv/config"
 import { hash } from '../utils/bcrypt.js';
 import prisma from './../lib/prisma.js'
-
+/*
 async function alter() {
     try {
-        await prisma.user.updateMany({
-            data: {
-                avatar: 'https://t3.ftcdn.net/jpg/00/64/67/52/360_F_64675209_7ve2XQANuzuHjMZXP3aIYIpsDKEbF5dD.jpg'
-            },
-            where: {
-                avatar: 'https://uxwing.com/wp-content/themes/uxwing/download/peoples-avatars/default-avatar-profile-picture-male-icon.png'
-            }
+        await prisma.user.delete({
+            where
+            
+           
         })
     } catch (error) {
         console.log(error);
     }
 }
+
+alter()*/
 
 
 async function main() {

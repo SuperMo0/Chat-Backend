@@ -12,7 +12,7 @@ export async function updateProfile(req, res) {
         v2.uploader.upload_stream({ format: 'png', resource_type: 'image' }, async (err, result) => {
             if (err) return res.status(500).json({ message: 'error uploading' });
             let newUser = await model.updateProfile(userId, name, result.url);
-            return res.json({ user: newUser });
+            return res.json({ user: newUser, message: "profile updated successfuly" });
         }).end(avatar.buffer)
 
     } catch (error) {
